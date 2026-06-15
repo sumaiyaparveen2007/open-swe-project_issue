@@ -1,18 +1,57 @@
-users = []
+"""Simple user tracker with validation and aggregate helpers."""
 
-def add_user(name, age):
-    users.append({
-        "name": name,
-        "age": age
-    })
+from typing import Any, Dict, List, Optional
 
-def average_age():
-    total = 0
+users: List[Dict[str, Any]] = []
 
-    for user in users:
-        total += user["age"]
 
+class UserError(ValueError):
+    """Raised when user data is invalid."""
+
+
+def _normalize_name(name: Any) -> str:
+    if name is None:
+        raise UserError("name is required")
+
+    normalized = str(name).strip()
+    if not normalized:
+        raise UserError("name cannot be empty")
+    return normalized
+
+
+def _normalize_age(age: Any) -> int:
+    if isinstance(age, bool) or not isinstance(age, int):
+        raise UserError("age must be a positive integer")
+    if age <= 0:
+        raise UserError("age must be a positive integer")
+    return age
+
+
+def add_user(name: Any, age: Any) -> Dict[str, Any]:
+    """Add a user with validated, unique data."""
+    normalized_name = _normalize_name(name)
+    normalized_age = _normalize_age(age)
+
+    if any(user["name"] == normalized_name for user in users):
+        raise UserError(f"user '{normalized_name}' already exists")
+
+    user = {"name": normalized_name, "age": normalized_age}
+    users.append(user)
+    return user.copy()
+
+
+def average_age() -> float:
+    """Return the average user age, or 0.0 when no users exist."""
+    if not users:
+        return 0.0
+
+    total = sum(user["age"] for user in users)
     return total / len(users)
 
-def oldest_user():
-    return max(users)
+
+def oldest_user() -> Optional[Dict[str, Any]]:
+    """Return the oldest user, or None when the list is empty."""
+    if not users:
+        return None
+
+    return max(users, key=lambda user: user["age"]).copy()
