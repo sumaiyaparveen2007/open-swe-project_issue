@@ -1,0 +1,18 @@
+users = []
+
+def add_user(name, age):
+    users.append({
+        "name": name,
+        "age": age
+    })
+
+def average_age():
+    total = 0
+
+    for user in users:
+        total += user["age"]
+
+    return total / len(users)
+
+def oldest_user():
+    return max(users)
